@@ -14,6 +14,7 @@ const fence_area_2 = {
 };
 var inside_fence_1 = await findSolution([], fence_area_1);
 var inside_fence_2 = await findSolution([], fence_area_2);
+var tiles_put = [];
 export class Pathfinder extends Phaser.Scene {
   constructor() {
     super("pathfinderScene");
@@ -77,6 +78,7 @@ export class Pathfinder extends Phaser.Scene {
     this.inside_fence_1 = inside_fence_1;
     this.inside_fence_2 = inside_fence_2;
     this.qKey = this.input.keyboard.addKey("Q");
+    this.eKey = this.input.keyboard.addKey("E");
   }
 
   update() {
@@ -93,8 +95,12 @@ export class Pathfinder extends Phaser.Scene {
     }
 
     if (Phaser.Input.Keyboard.JustDown(this.qKey)) {
-      this.put(this.inside_fence_1, 57);
-      this.put(this.inside_fence_2, 57);
+      this.put(this.inside_fence_1, 58);
+      this.put(this.inside_fence_2, 58);
+      this.map.render;
+    }
+    if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+      this.clear();
       this.map.render;
     }
   }
@@ -104,10 +110,19 @@ export class Pathfinder extends Phaser.Scene {
       return;
     }
     let random = Phaser.Math.Between(0, values.length - 1);
-    var tile = values.splice(random, 1);
+    var tile = values.splice(random, 1)[0];
     const layer = this.map.getLayer("Houses-n-Fences").tilemapLayer;
-    console.log(tile);
-    return layer.putTileAt(tile_id, tile.x, tile.y);
+    const { xVal, yVal } = tile;
+    tiles_put.push(tile);
+    return layer.putTileAt(tile_id, xVal, yVal);
+  }
+  clear() {
+    console.log(tiles_put);
+    const layer = this.map.getLayer("Houses-n-Fences").tilemapLayer;
+    tiles_put.forEach(({ xVal, yVal }) => {
+      layer.removeTileAt(xVal, yVal);
+    });
+    tiles_put = [];
   }
   resetCost(tileset) {
     for (let tileID = tileset.firstgid; tileID < tileset.total; tileID++) {
