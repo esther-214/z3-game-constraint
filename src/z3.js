@@ -3,7 +3,7 @@ import { init } from "z3-solver";
 const { Context } = await init();
 const { Solver, Int, And, Or, Distinct } = new Context("main");
 const solver = new Solver();
-export async function findSolution(values, fence) {
+export async function find(values, fence) {
   let x = Int.const("x");
   let y = Int.const("y");
   solver.add(And(x.gt(fence.left), x.lt(fence.right), y.gt(fence.top), y.lt(fence.bottom)));

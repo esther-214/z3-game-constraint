@@ -1,4 +1,4 @@
-import { findSolution } from "../z3";
+import { find } from "../z3";
 import { my } from "../main";
 const fence_area_1 = {
   left: 34,
@@ -12,8 +12,15 @@ const fence_area_2 = {
   bottom: 20,
   top: 17,
 };
-var inside_fence_1 = await findSolution([], fence_area_1);
-var inside_fence_2 = await findSolution([], fence_area_2);
+const forest_area = {
+  left: 11,
+  right: 23,
+  bottom: 12,
+  top: 1,
+};
+var inside_fence_1 = await find([], fence_area_1);
+var inside_fence_2 = await find([], fence_area_2);
+var inside_forest = await find([], forest_area);
 var tiles_put = [];
 export class Pathfinder extends Phaser.Scene {
   constructor() {
@@ -77,6 +84,7 @@ export class Pathfinder extends Phaser.Scene {
 
     this.inside_fence_1 = inside_fence_1;
     this.inside_fence_2 = inside_fence_2;
+    this.inside_forest = inside_forest;
     this.qKey = this.input.keyboard.addKey("Q");
     this.eKey = this.input.keyboard.addKey("E");
   }
@@ -97,6 +105,7 @@ export class Pathfinder extends Phaser.Scene {
     if (Phaser.Input.Keyboard.JustDown(this.qKey)) {
       this.put(this.inside_fence_1, 58);
       this.put(this.inside_fence_2, 58);
+      this.put(this.inside_forest, 30);
       this.map.render;
     }
     if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
@@ -104,11 +113,23 @@ export class Pathfinder extends Phaser.Scene {
       this.map.render;
     }
   }
+  avoid(values) {
+    const layer = this.map.getLayer("Trees-n-Bushes").tilemapLayer;
+    const updatedValues = values.filter(({ xVal, yVal }) => {
+      const tile = layer.getTileAt(xVal, yVal);
+      if (tile) {
+        return false;
+      }
+      return true;
+    });
+    return updatedValues;
+  }
   put(values, tile_id) {
     if (values.length == 0) {
       console.log("no more solutions");
       return;
     }
+    values = this.avoid(values);
     let random = Phaser.Math.Between(0, values.length - 1);
     var tile = values.splice(random, 1)[0];
     const layer = this.map.getLayer("Houses-n-Fences").tilemapLayer;
@@ -122,6 +143,7 @@ export class Pathfinder extends Phaser.Scene {
     tiles_put.forEach(({ xVal, yVal }) => {
       layer.removeTileAt(xVal, yVal);
     });
+
     tiles_put = [];
   }
   resetCost(tileset) {
